@@ -1,0 +1,68 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Blocks from '../components/wp/Blocks.astro';
+import { page, decode } from '../lib/pages';
+
+const home = page('home');
+// Give the services heading an id so "Our services" can link to it.
+const tag = (items: any[]): void => items.forEach((b) => {
+  if (b.t === 'row') b.cols.forEach((c: any) => tag(c.items));
+  else if (b.t === 'h' && /Radiator Solutions/i.test(b.html)) b.id = 'services';
+});
+tag(home.rows);
+---
+<Layout title={decode(home.title)} description={home.description} ogImage="/video/hero-poster.jpg">
+  <section class="hero" aria-label="Powering Performance Through Efficient Cooling">
+    <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="/video/hero-poster.jpg" aria-hidden="true">
+      <source src="/video/hero-section-video.mp4" type="video/mp4" />
+    </video>
+    <div class="hero-shade" aria-hidden="true"></div>
+    <div class="hero-in">
+      <p class="hero-title"><span>Powering Performance</span> <span>Through Efficient Cooling</span></p>
+      <p class="hero-sub">Trusted industrial radiator solutions built for the toughest environments.</p>
+      <a class="btn btn-outline-light hero-btn" href="#services">Our services <svg class="chev" viewBox="0 0 7 11" aria-hidden="true"><path d="M1 1l4.5 4.5L1 10" fill="none" stroke="currentColor" stroke-width="1.6" /></svg></a>
+    </div>
+    <button type="button" class="hero-pause" aria-label="Pause background video" aria-pressed="false">
+      <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path class="i-pause" d="M2 1h3v10H2zM7 1h3v10H7z" fill="currentColor" /><path class="i-play" d="M2 1l9 5-9 5z" fill="currentColor" /></svg>
+    </button>
+  </section>
+  <Blocks items={home.rows} />
+</Layout>
+
+<style>
+  .hero { position: relative; height: 100vh; min-height: 560px; max-height: 900px; overflow: hidden; background: #1b1d21; color: #fff; display: flex; align-items: center; }
+  .hero-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .hero-shade { position: absolute; inset: 0; background: rgba(0, 0, 0, .28); }
+  .hero-in { position: relative; width: 100%; padding: 0 72px; }
+  .hero-title { margin: 0 0 16px; font-size: 72px; line-height: 76px; font-weight: 800; letter-spacing: -.5px; color: #fff; }
+  .hero-title span { display: block; }
+  .hero-sub { font-size: 20px; line-height: 30px; margin: 0 0 32px; color: #fff; }
+  .hero-btn { height: 56px; padding: 0 28px; font-weight: 600; }
+  .hero-pause { position: absolute; right: 24px; bottom: 24px; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid rgba(255,255,255,.6); background: rgba(0,0,0,.25); color: #fff; cursor: pointer; }
+  .hero-pause .i-play { display: none; }
+  .hero-pause[aria-pressed='true'] .i-play { display: block; }
+  .hero-pause[aria-pressed='true'] .i-pause { display: none; }
+  @media (max-width: 1023px) {
+    .hero-in { padding: 0 24px; }
+    .hero-title { font-size: 48px; line-height: 54px; }
+  }
+  @media (max-width: 599px) {
+    .hero { height: 560px; }
+    .hero-title { font-size: 36px; line-height: 42px; }
+    .hero-sub { font-size: 17px; line-height: 26px; }
+    .hero-pause { bottom: 80px; right: 16px; }
+  }
+</style>
+
+<script>
+  const v = document.querySelector<HTMLVideoElement>('.hero-video');
+  const b = document.querySelector<HTMLButtonElement>('.hero-pause');
+  if (v && matchMedia('(prefers-reduced-motion: reduce)').matches) { v.pause(); b?.setAttribute('aria-pressed', 'true'); }
+  b?.addEventListener('click', () => {
+    if (!v) return;
+    const paused = !v.paused;
+    paused ? v.pause() : v.play();
+    b.setAttribute('aria-pressed', String(paused));
+    b.setAttribute('aria-label', paused ? 'Play background video' : 'Pause background video');
+  });
+</script>

@@ -1,0 +1,9 @@
+# Netlify redirects. Every page keeps its old WordPress URL, so only WordPress system URLs need mapping.
+/sitemap_index.xml   /sitemap.xml   301
+/wp-sitemap.xml      /sitemap.xml   301
+/page-sitemap.xml    /sitemap.xml   301
+/post-sitemap.xml    /sitemap.xml   301
+/project-sitemap.xml /sitemap.xml   301
+/feed/*              /blog/         301
+/author/*            /blog/         301
+/generator-air-compressor-services/  /  301

@@ -1,0 +1,62 @@
+---
+// The three animated stat circles. The old theme filled the numbers in with JavaScript, so they are set here.
+import type { Block } from '../../lib/blocks';
+interface Props { items: Block[] }
+const values: Record<string, number> = { 'Corporate Industrial Clients': 400, 'On Going Projects': 20, 'Projects Completed': 1600 };
+const items = Astro.props.items.map((c) => ({ size: c.size as string, post: c.post as string, title: c.title as string, n: values[c.title] ?? (Number(c.v) || 0) }));
+---
+<div class="counters">
+  {items.map((c) => (
+    <div class:list={['counter', `size-${c.size || 'medium'}`]}>
+      <span class="ring" aria-hidden="true"></span>
+      <div class="c-in">
+        <div class="c-val"><span class="num" data-to={c.n}>{c.n}</span>{c.post}</div>
+        <h6 class="c-title">{c.title}</h6>
+      </div>
+    </div>
+  ))}
+</div>
+
+<style>
+  .counters { position: relative; height: 500px; }
+  .counter { position: absolute; display: grid; place-items: center; border-radius: 50%; text-align: center; }
+  .ring { position: absolute; inset: 0; border-radius: 50%; border: 1px dashed #e0e0e0; }
+  .ring::after { content: ''; position: absolute; inset: -1px; border-radius: 50%; border: 2px solid transparent; border-bottom-color: var(--red); transform: rotate(30deg); animation: spin 9s linear infinite; }
+  @keyframes spin { to { transform: rotate(390deg); } }
+  .c-in { position: relative; padding: 0 24px; }
+  .c-val { color: var(--red); font-size: 56px; line-height: 64px; font-weight: 400; }
+  .c-title { font-size: 18px; line-height: 26px; font-weight: 600; color: var(--ink); margin: 4px 0 0; }
+  .size-small { width: 200px; height: 200px; right: 0; top: 0; }
+  .size-small .c-val { font-size: 44px; line-height: 52px; }
+  .size-small .c-title { font-size: 15px; line-height: 22px; }
+  .size-large { width: 270px; height: 270px; left: 4%; top: 105px; }
+  .size-medium { width: 210px; height: 210px; right: 20px; bottom: 0; }
+  .size-medium .c-val { font-size: 48px; line-height: 56px; }
+  @media (prefers-reduced-motion: reduce) { .ring::after { animation: none; } }
+  @media (max-width: 767px) {
+    .counters { height: auto; display: grid; gap: 24px; justify-items: center; }
+    .counter { position: relative; inset: auto; width: 220px; height: 220px; }
+  }
+</style>
+
+<script>
+  const nums = document.querySelectorAll<HTMLElement>('.counters .num');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      io.unobserve(e.target);
+      const el = e.target as HTMLElement;
+      const to = Number(el.dataset.to);
+      const t0 = performance.now();
+      const tick = (t: number) => {
+        const p = Math.min(1, (t - t0) / 1800);
+        el.textContent = String(Math.round(to * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      el.textContent = '0';
+      requestAnimationFrame(tick);
+    }), { threshold: 0.4 });
+    nums.forEach((n) => io.observe(n));
+  }
+</script>

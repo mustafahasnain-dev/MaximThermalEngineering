@@ -1,0 +1,34 @@
+---
+import { Image } from 'astro:assets';
+import { upload } from '../lib/img';
+interface Props { post: { slug: string; title: string; date: string; img: string | null; excerpt?: string } }
+const { post } = Astro.props;
+const m = upload(post.img);
+const href = `/heat-exchanger/${post.slug}/`;
+---
+<article class="card">
+  <a href={href} class="card-img" tabindex="-1" aria-hidden="true">
+    {m && <Image src={m} alt={post.title} width={400} height={320} fit="cover" loading="lazy" />}
+  </a>
+  <div class="card-body">
+    <div class="meta"><a href="/category/heat-exchanger/">Heat Exchanger</a><span>{post.date}</span></div>
+    <h4><a href={href}>{post.title}</a></h4>
+    {post.excerpt && <p>{post.excerpt}</p>}
+    <a class="more" href={href} aria-label={`Read more about ${post.title}`}>Read more</a>
+  </div>
+</article>
+<style>
+  .card { background: #fff; border: 1px solid var(--line); display: flex; flex-direction: column; }
+  .card-img { display: block; overflow: hidden; }
+  .card-img :global(img) { width: 100%; aspect-ratio: 400 / 320; object-fit: cover; transition: transform .4s; }
+  .card:hover .card-img :global(img) { transform: scale(1.04); }
+  .card-body { padding: 24px 24px 28px; display: flex; flex-direction: column; flex: 1; }
+  .meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; line-height: 20px; font-weight: 700; margin-bottom: 8px; }
+  .meta a { color: var(--red); text-transform: uppercase; letter-spacing: .5px; }
+  .meta span { color: #9e9e9e; }
+  h4 { font-size: 20px; line-height: 28px; margin-bottom: 12px; }
+  h4 a:hover { color: var(--red); }
+  p { font-size: 15px; line-height: 26px; margin-bottom: 16px; }
+  .more { margin-top: auto; font-size: 14px; font-weight: 700; color: var(--ink); align-self: flex-start; border-bottom: 2px solid var(--red); line-height: 22px; }
+  .more:hover { color: var(--red); }
+</style>

@@ -1,0 +1,25 @@
+---
+// Page title bar used on the blog, post, project and archive templates.
+interface Props { title: string; crumbs: { label: string; href?: string }[]; tag?: 'h1' | 'p' }
+const { title, crumbs, tag = 'h1' } = Astro.props;
+const T = tag;
+---
+<section class="ts">
+  <div class="container ts-in">
+    <T class="ts-title">{title}</T>
+    <nav class="wcrumbs" aria-label="Breadcrumb">
+      {crumbs.map((c, i) => (i < crumbs.length - 1 && c.href
+        ? <><a href={c.href}>{c.label}</a><span class="sep" aria-hidden="true">/</span></>
+        : <span aria-current="page">{c.label}</span>))}
+    </nav>
+  </div>
+</section>
+<style>
+  .ts { background: #fff; padding: 72px 0; border-bottom: 1px solid var(--line); }
+  .ts-in { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .ts-title { font-size: 48px; line-height: 56px; font-weight: 700; color: var(--ink); margin: 0; letter-spacing: .25px; }
+  .wcrumbs { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; font-size: 14px; font-weight: 600; color: var(--ink); }
+  .wcrumbs a:hover { color: var(--red); }
+  .wcrumbs .sep { color: #bdbdbd; }
+  @media (max-width: 767px) { .ts { padding: 40px 0; } .ts-title { font-size: 32px; line-height: 40px; } }
+</style>

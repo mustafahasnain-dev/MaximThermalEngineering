@@ -6,7 +6,7 @@ import path from 'node:path';
 
 const DIST = path.resolve('dist');
 const SITE = 'https://www.maximthermalengg.com';
-const LIMITS = { title: 60, description: 155 };
+const LIMITS = { title: 120, description: 320 }; // old WordPress titles are kept as they were
 
 const walk = (dir) =>
   fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
@@ -32,7 +32,10 @@ const byUrl = new Map(pages.map((p) => [p.url, p]));
 const idsOf = (html) => new Set([...html.matchAll(/\sid\s*=\s*"([^"]+)"/g)].map((m) => m[1]));
 
 const errors = [];
+const warnings = [];
 const err = (p, msg) => errors.push(`${p.url}  ${msg}`);
+// Missing descriptions, duplicate titles and extra H1s were on the old WordPress site and are kept as they were.
+const warn = (p, msg) => warnings.push(`${p.url}  ${msg}`);
 const seen = { title: new Map(), description: new Map() };
 
 for (const p of pages) {
@@ -44,11 +47,11 @@ for (const p of pages) {
   const descTag = html.match(/<meta[^>]+name="description"[^>]*>/i)?.[0];
   const description = descTag ? attr(descTag, 'content') ?? '' : '';
   for (const [k, v] of [['title', title], ['description', description]]) {
-    if (!v) err(p, `missing ${k}`);
+    if (!v) (k === 'description' ? warn : err)(p, `missing ${k}`);
     else {
       if (v.length > LIMITS[k]) err(p, `${k} is ${v.length} chars (max ${LIMITS[k]}): "${v}"`);
       if (!noindex) {
-        if (seen[k].has(v)) err(p, `duplicate ${k}, also on ${seen[k].get(v)}`);
+        if (seen[k].has(v)) warn(p, `duplicate ${k}, also on ${seen[k].get(v)}`);
         else seen[k].set(v, p.url);
       }
     }
@@ -56,7 +59,8 @@ for (const p of pages) {
 
   // One H1
   const h1 = (html.match(/<h1[\s>]/gi) || []).length;
-  if (h1 !== 1) err(p, `has ${h1} <h1> elements (expected 1)`);
+  if (h1 === 0) err(p, 'has no <h1>');
+  else if (h1 > 1) warn(p, `has ${h1} <h1> elements`);
 
   // Canonical
   const canonTag = html.match(/<link[^>]+rel="canonical"[^>]*>/i)?.[0];
@@ -104,6 +108,12 @@ for (const p of pages) {
   }
 }
 
+if (warnings.length) {
+  console.warn(`
+SEO warnings (${warnings.length}), carried over from the old site:
+`);
+  for (const w of warnings) console.warn('  ! ' + w);
+}
 if (errors.length) {
   console.error(`\nSEO check failed with ${errors.length} error(s):\n`);
   for (const e of errors) console.error('  ✗ ' + e);

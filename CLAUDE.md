@@ -1,5 +1,12 @@
 # Maxim Thermal Engineering: Astro website
 
+> **Current direction (2026-10-27):** the owner asked for an exact copy of the old WordPress site
+> (https://www.maximthermalengg.com/): same pages, URLs, copy, images, colours (#C62828) and font
+> (Nunito Sans). This overrides the design, brand and lead-system sections below until the owner says
+> otherwise. Page content lives in `src/data/pages/*.json` (extracted from the old WPBakery rows) and is
+> rendered by `src/components/wp/Blocks.astro`. Blog posts are in `src/data/posts.json`. Original images
+> are in `src/assets/uploads/` under their WordPress file names.
+
 Rebuild of https://www.maximthermalengg.com/ (WordPress) as a fast, lead-driven static site.
 The goal of every page is to produce quote requests, WhatsApp chats and phone calls.
 

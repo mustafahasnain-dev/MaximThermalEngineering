@@ -1,0 +1,39 @@
+---
+import { Image } from 'astro:assets';
+import { site, footerCols } from '../data/site';
+import logo from '../assets/uploads/Maxim-logo.png';
+---
+<footer class="ftr">
+  <div class="container ftr-in">
+    <div class="about">
+      <a href="/" aria-label="Maxim Thermal Engineering, home"><Image src={logo} alt="Maxim Thermal Engineering" width={240} loading="lazy" /></a>
+      <p>{site.tagline}</p>
+    </div>
+    {footerCols.map((c) => (
+      <nav class="col" aria-label={c.title}>
+        <h5>{c.title}</h5>
+        <ul>
+          {c.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+        </ul>
+      </nav>
+    ))}
+  </div>
+  <div class="bar">
+    <div class="container">Copyright © Maxim Thermal Engineering. {new Date().getFullYear()}</div>
+  </div>
+</footer>
+
+<style>
+  .ftr { background: #fff; border-top: 1px solid var(--line); }
+  .ftr-in { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 48px; padding: 56px 0 48px; }
+  .about :global(img) { width: 240px; height: auto; margin-bottom: 20px; }
+  .about p { font-size: 14px; line-height: 24px; color: var(--text); }
+  h5 { font-size: 15px; line-height: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: .25px; color: var(--ink); margin-bottom: 16px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { margin-bottom: 4px; }
+  li a { font-size: 14px; line-height: 24px; font-weight: 700; color: var(--ink); transition: color .2s; }
+  li a:hover { color: var(--red); }
+  .bar { background: var(--darker); color: #bdbdbd; font-size: 14px; line-height: 24px; padding: 18px 0; }
+  @media (max-width: 1023px) { .ftr-in { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 599px) { .ftr-in { grid-template-columns: 1fr; gap: 32px; } }
+</style>

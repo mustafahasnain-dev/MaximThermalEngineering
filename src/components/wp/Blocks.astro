@@ -1,0 +1,286 @@
+---
+// Renders the content blocks extracted from the old WPBakery pages: rows, columns and theme widgets.
+import { Image } from 'astro:assets';
+import { upload, bgUrl } from '../../lib/img';
+import { textStyle, isBig, fixHtml, normalise, colPad, gapOf, type Block } from '../../lib/blocks';
+import { site } from '../../data/site';
+import Counters from './Counters.astro';
+import ProjectsPage from '../ProjectsPage.astro';
+import ContactForm from './ContactForm.astro';
+import Social from './Social.astro';
+
+interface Props { items: Block[]; nested?: boolean }
+const { items, nested = false } = Astro.props;
+const list = normalise(items);
+
+const chev = '<svg class="chev-ico" width="9" height="14" viewBox="0 0 9 14" aria-hidden="true"><path d="M1.5 1.5L7 7l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>';
+const waIcon = '<svg width="18" height="18" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 3C9 3 3.3 8.6 3.3 15.6c0 2.4.7 4.7 1.9 6.7L3 29l6.9-2.1c1.9 1 4 1.6 6.1 1.6 7 0 12.7-5.7 12.7-12.7S23 3 16 3zm5.8 15.4c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.3-.5-2.6-1.6-1-.9-1.6-1.9-1.8-2.3-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.8s1.2 3.2 1.4 3.5c.2.2 2.4 3.6 5.8 5 .8.4 1.4.6 1.9.7.8.3 1.6.2 2.2.1.7-.1 1.9-.8 2.2-1.5.3-.8.3-1.4.2-1.5-.1-.2-.3-.3-.6-.4z"/></svg>';
+const btnChev = '<svg class="chev" width="7" height="11" viewBox="0 0 7 11" aria-hidden="true"><path d="M1 1l4.5 4.5L1 10" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+
+const href = (h: string | null | undefined) => (h ? h.replace(/^https?:\/\/(www\.)?maximthermalengg\.com/, '') || '/' : '#');
+const ext = (h: string) => /^https?:/.test(h);
+
+// Pre-compute background image URLs for rows and columns.
+const bgs = new Map<string, string | undefined>();
+for (const b of list) {
+  if (b.t === 'row') {
+    if (b.bgi) bgs.set(b.bgi, await bgUrl(b.bgi));
+    for (const c of b.cols) if (c.bgi) bgs.set(c.bgi, await bgUrl(c.bgi, 1000));
+  }
+  if (b.t === 'bgimg') bgs.set(b.src, await bgUrl(b.src, 1000));
+}
+const bgCss = (name?: string | null, size?: string, pos?: string) => {
+  const u = name && bgs.get(name);
+  if (!u) return '';
+  const pattern = /map_transparent/.test(name!);
+  return `background-image:url(${u});background-size:${pattern ? size || 'auto' : 'cover'};background-position:${pos || 'center'};background-repeat:${pattern ? 'repeat' : 'no-repeat'}`;
+};
+---
+{list.map((b) => {
+  if (b.t === 'row') {
+    const stretch = b.cls?.includes('stretch_row_content') || b.cls?.includes('stretch_row_content_no_spaces');
+    const fullH = b.cls?.includes('vc_row-o-full-height');
+    const middle = b.cls?.some((c: string) => c.includes('content-middle'));
+    const bottom = b.cls?.some((c: string) => c.includes('content-bottom'));
+    const gap = gapOf(b.cls);
+    const style = [
+      b.bg && `background-color:${b.bg}`,
+      bgCss(b.bgi, b.bgSize, b.bgPos),
+      !nested && `padding-top:${b.pad?.[0] ?? '0px'};padding-bottom:${b.pad?.[1] ?? '0px'}`,
+      `--gap:${gap}px`,
+    ].filter(Boolean).join(';');
+    const n = b.cols.length;
+    const Tag = nested ? 'div' : 'section';
+    return (
+      <Tag class:list={['wrow', { stretch, fullh: fullH, nested, many: n >= 4 }]} style={style}>
+        <div class:list={[stretch || nested ? 'wrow-full' : 'container']}>
+          <div class:list={['wcols', { middle, bottom }]}>
+            {b.cols.map((c: any) => {
+              const p = colPad(c.pad);
+              const cs = [
+                `--w:${(c.w / 12) * 100}%`,
+                c.off && `margin-left:${(c.off / 12) * 100}%`,
+                c.bg && `background-color:${c.bg}`,
+                bgCss(c.bgi),
+              ].filter(Boolean).join(';');
+              return (
+                <div class:list={['wcol', { padx: p.wide, filled: !!c.bg }]} style={cs}>
+                  <div class="wcol-in" style={p.style}>
+                    <Astro.self items={c.items} nested={true} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Tag>
+    );
+  }
+
+  if (b.t === 'gap') return <div class="wgap" style={`height:${b.h}px`} aria-hidden="true"></div>;
+
+  if (b.t === 'h') {
+    const H = b.tag as any;
+    const bar = b.bar;
+    const wrap = b.wrap?.bg && !/,\s*0\)$/.test(b.wrap.bg) ? `background:${b.wrap.bg};padding:${b.wrap.pad}` : '';
+    const wpad = !wrap && b.wrap?.pad && b.wrap.pad !== '0px' ? `padding:${b.wrap.pad}` : '';
+    return (
+      <H id={b.id} class:list={['wh', { big: isBig(b.st), bar: !!bar, badge: !!wrap }]} style={textStyle(b.st, { margin: true }) + (bar ? `;--bar:${bar.bg}` : '')}>
+        {wrap || wpad ? <span class="tw" style={wrap || wpad} set:html={b.html} /> : <Fragment set:html={b.html} />}
+      </H>
+    );
+  }
+
+  if (b.t === 'text') {
+    const Tag = (/^h[1-6]$/.test(b.tag || '') ? b.tag : 'div') as any;
+    return <Tag class:list={['wtext', { big: isBig(b.st) }]} style={textStyle(b.st)} set:html={fixHtml(b.html)} />;
+  }
+
+  if (b.t === 'img') {
+    const m = upload(b.src);
+    if (!m) return null;
+    const dw = b.dw || Math.min(m.width, 1200);
+    const widths = [...new Set([Math.min(dw, m.width), Math.min(dw * 2, m.width), Math.min(600, m.width)])].sort((x, y) => x - y);
+    return (
+      <div class:list={['wimg', b.align && `al-${b.align}`]}>
+        <Image src={m} alt={b.alt || 'Maxim Thermal Engineering'} widths={widths} sizes={`(max-width: ${dw}px) 100vw, ${dw}px`} style={`max-width:${dw}px`} loading="lazy" />
+      </div>
+    );
+  }
+
+  if (b.t === 'bgimg') {
+    return <div class="wbgimg" style={bgCss(b.src) + `;min-height:${Math.max(b.h, 320)}px`} role="img" aria-label="Maxim Thermal Engineering"></div>;
+  }
+
+  if (b.t === 'btn') {
+    const h = href(b.href);
+    const wa = /whatsapp/.test(b.href || '') || /whatsapp/.test(b.icon || '');
+    if (b.kind === 'vc' || wa) {
+      return (
+        <div class="wbtn-wrap" style={b.align && b.align !== 'left' && b.align !== 'start' ? `text-align:${b.align}` : ''}>
+          <a class="btn btn-wa" href={h} target={ext(h) ? '_blank' : undefined} rel={ext(h) ? 'noopener' : undefined} style={b.bg && !wa ? `background:${b.bg};color:${b.c}` : ''}>
+            {wa && <Fragment set:html={waIcon} />}{b.text}
+          </a>
+        </div>
+      );
+    }
+    const outline = !b.bg;
+    const style = [
+      b.bg && `background:${b.bg}`,
+      `color:${b.c}`,
+      outline && b.border && !b.border.startsWith('0px') && `border:${b.border}`,
+      b.h && `height:${b.h}px`,
+      b.fs && `font-size:${b.fs}`,
+      b.fw && `font-weight:${b.fw}`,
+      b.pad && `padding:${b.pad}`,
+    ].filter(Boolean).join(';');
+    return (
+      <div class="wbtn-wrap">
+        <a class:list={['btn wbtn', { outline }]} href={h} target={ext(h) ? '_blank' : undefined} rel={ext(h) ? 'noopener' : undefined} style={style}>
+          {b.text}{b.icon && <Fragment set:html={btnChev} />}
+        </a>
+      </div>
+    );
+  }
+
+  if (b.t === 'icons') {
+    return (
+      <ul class="wicons" style={`--cols:${b.cols};--ic:${b.ic || 'var(--red)'}`}>
+        {b.items.map((it: any) => (
+          <li>
+            <Fragment set:html={chev} />
+            <div>
+              {it.title && <span class:list={['it-t', { big: isBig(b.tst) }]} style={textStyle(b.tst, { margin: false })} set:html={it.title} />}
+              {it.text && <span class="it-p" style={textStyle(b.pst)} set:html={fixHtml(it.text)} />}
+            </div>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  if (b.t === 'steps') {
+    return (
+      <div class="wsteps" style={`--cols:${b.cols}`}>
+        {b.items.map((it: any) => (
+          <div class="step">
+            <span class="dot" aria-hidden="true"></span>
+            <h3 class:list={['st-t wh', { big: isBig(b.tst) }]} style={textStyle(b.tst)} set:html={it.title} />
+            <p class="st-p" style={textStyle(b.pst)} set:html={fixHtml(it.text)} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (b.t === 'counter') return null; // rendered as a group below
+  if (b.t === 'crumbs') {
+    return (
+      <nav class="wcrumbs" aria-label="Breadcrumb">
+        {b.items.map((x: string, i: number) => i < b.items.length - 1
+          ? <><a href={i === 0 ? '/' : `/${x.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/`}>{x}</a><span class="sep" aria-hidden="true">/</span></>
+          : <span aria-current="page">{x}</span>)}
+      </nav>
+    );
+  }
+  if (b.t === 'projects') return <ProjectsPage compact />;
+  if (b.t === 'person') {
+    const m = upload(b.img);
+    return (
+      <div class="person">
+        {m && <Image src={m} alt={b.name} width={400} height={400} loading="lazy" />}
+        <div class="person-body">
+          <h4>{b.name}</h4>
+          <p>{b.role}</p>
+        </div>
+      </div>
+    );
+  }
+  if (b.t === 'map') return <iframe class="wmap" src={site.map} style="height:340px" title="Maxim Thermal Engineering head office on Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>;
+  if (b.t === 'form') return <ContactForm />;
+  if (b.t === 'social') return <Social />;
+  if (b.t === 'sep') return <hr class="wsep" />;
+  return null;
+})}
+{list.some((b) => b.t === 'counter') && <Counters items={list.filter((b) => b.t === 'counter')} />}
+
+<style is:global>
+  .wrow { position: relative; color: var(--text); }
+  .wrow-full { width: 100%; }
+  .wcols { display: flex; flex-wrap: wrap; margin: 0 calc(var(--gap) / -2); }
+  .wrow.stretch > .wrow-full > .wcols, .wrow.nested > .wrow-full > .wcols { margin: 0 calc(var(--gap) / -2); }
+  .wrow.stretch > .wrow-full > .wcols { margin: 0; }
+  .wcols.middle { align-items: center; }
+  .wcols.bottom { align-items: flex-end; }
+  .wcol { flex: 0 0 var(--w); max-width: var(--w); padding: 0 calc(var(--gap) / 2); min-width: 0; }
+  .wrow.stretch .wcol { padding: 0; }
+  .wcol-in { height: 100%; }
+  .wrow.fullh { min-height: calc(100vh - var(--header-h)); display: flex; align-items: center; }
+  .wrow.fullh > .container { width: min(var(--container), calc(100% - 48px)); }
+
+  .wh { font-size: var(--fs, inherit); line-height: var(--lh, 1.25); }
+  .wh.bar { position: relative; padding-left: 20px; }
+  .wh.bar::before { content: ''; position: absolute; left: 0; top: .12em; bottom: .12em; width: 4px; background: var(--bar, var(--red)); }
+  .wh .tw { display: inline-block; max-width: 100%; }
+  .wtext { font-size: var(--fs, inherit); line-height: var(--lh, inherit); }
+  .wtext p { margin-bottom: 16px; }
+  .wtext p:last-child { margin-bottom: 0; }
+  .wtext ul, .wtext ol { margin-bottom: 16px; }
+  .wtext a { color: var(--red); }
+  .fsz p { color: #000 !important; }
+
+  .wimg img { width: 100%; }
+  .wimg.al-center img { margin: 0 auto; }
+  .wimg.al-right img { margin-left: auto; }
+  .wbgimg { width: 100%; height: 100%; }
+
+  .wbtn-wrap { display: block; }
+  .wbtn { height: 61px; padding: 0 24px; }
+  .wbtn.outline { background: transparent; box-shadow: inset 0 0 0 1px currentColor; }
+  .wbtn:hover { background: var(--ink) !important; border-color: var(--ink) !important; color: #fff !important; }
+  .btn-wa { display: inline-flex; }
+
+  .wicons { --cols: 1; display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); column-gap: 32px; row-gap: 0; list-style: none; margin: 0; padding: 0; }
+  .wicons li { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 16px; }
+  .wicons .chev-ico { color: var(--ic); margin-top: calc((var(--lh, 28px) - 14px) / 2); flex: none; }
+  .wicons .it-t { display: block; font-size: var(--fs, 20px); line-height: var(--lh, 28px); }
+  .wicons .it-p { display: block; font-size: var(--fs, 16px); line-height: var(--lh, 26px); margin-top: 4px; }
+
+  .wsteps { --cols: 3; display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); margin: 0 -32px; }
+  .step { padding: 0 32px 32px; }
+  .step .dot { display: block; width: 16px; height: 16px; border-radius: 50%; background: var(--red); margin-bottom: 16px; }
+  .step .st-t { margin-bottom: 16px; }
+  .step .st-p { font-size: var(--fs, 16px); line-height: var(--lh, 28px); margin: 0; }
+
+  .wcrumbs { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; font-size: 14px; font-weight: 600; color: var(--ink); }
+  .wcrumbs a:hover { color: var(--red); }
+  .wcrumbs .sep { color: #bdbdbd; }
+
+  .person { background: #fff; border: 1px solid var(--line); height: 100%; }
+  .person img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+  .person-body { padding: 24px; }
+  .person h4 { display: inline-block; font-size: 20px; line-height: 28px; margin-bottom: 8px; border-bottom: 2px solid var(--red); }
+  .person p { font-size: 15px; line-height: 24px; margin: 0; font-weight: 600; }
+  .wmap { width: 100%; border: 0; }
+  .wsep { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
+
+  @media (max-width: 1023px) {
+    .wcol { flex-basis: 100%; max-width: 100%; margin-left: 0 !important; }
+    .wrow.many .wcol { flex-basis: 50%; max-width: 50%; }
+    .wcol.padx > .wcol-in { padding: 48px 24px !important; }
+    .wsteps { grid-template-columns: repeat(min(var(--cols), 2), minmax(0, 1fr)); }
+    .wicons { grid-template-columns: repeat(min(var(--cols), 2), minmax(0, 1fr)); }
+    .wh.big, .wtext.big, .it-t.big { font-size: calc(var(--fs) * .75); line-height: 1.25; }
+    .wcrumbs { justify-content: flex-start; }
+    .wrow.fullh { min-height: 0; padding-top: 96px !important; padding-bottom: 96px !important; }
+  }
+  @media (max-width: 767px) {
+    .wcol, .wrow.many .wcol { flex-basis: 100%; max-width: 100%; }
+    .wsteps, .wicons { grid-template-columns: 1fr; }
+    .wsteps { margin: 0 -16px; }
+    .step { padding: 0 16px 24px; }
+    .wh.big, .wtext.big, .it-t.big { font-size: max(24px, calc(var(--fs) * .62)); }
+    .wrow > .container > .wcols > .wcol + .wcol { margin-top: 24px; }
+    .wgap { max-height: 32px; }
+  }
+</style>

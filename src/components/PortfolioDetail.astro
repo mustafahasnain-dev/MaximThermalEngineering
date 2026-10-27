@@ -1,0 +1,50 @@
+---
+// Detail page for each project on /project/. Shows only the facts given for that project.
+import { Image } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import TitleSection from './TitleSection.astro';
+import SpecIcon from './SpecIcon.astro';
+import type { PortfolioItem } from '../data/portfolio';
+import { upload } from '../lib/img';
+
+interface Props { p: PortfolioItem }
+const { p } = Astro.props;
+const img = upload(p.img);
+---
+<Layout title={`${p.title} – ${p.subtitle} - Maxim Thermal Engineering`} description={`${p.title} for ${p.client}: ${p.subtitle}. ${p.specs.map((s) => `${s.label} ${s.value}`).join(', ')}.`}>
+  <TitleSection title="Projects" tag="p" crumbs={[{ label: 'Home', href: '/' }, { label: 'Projects', href: '/project/' }, { label: p.title }]} />
+  <article class="container pd">
+    <div class="pd-img">
+      {img && <Image src={img} alt={`${p.title}, ${p.subtitle}`} widths={[800, 1200]} sizes="(max-width: 1023px) 100vw, 640px" loading="eager" />}
+    </div>
+    <div class="pd-body">
+      <p class="labels"><span class="tag">{p.tag}</span><span class="status">{p.status}</span></p>
+      <h1>{p.title}</h1>
+      <p class="sub">{p.subtitle}</p>
+      <dl class="specs">
+        <div><dt><SpecIcon name="user" />Client</dt><dd>{p.client}</dd></div>
+        {p.specs.map((s) => <div><dt><SpecIcon name={s.icon} />{s.label}</dt><dd>{s.value}</dd></div>)}
+      </dl>
+      <a class="btn" href="/inquiry/">Discuss a Similar Project</a>
+      <a class="back" href="/project/">← All projects</a>
+    </div>
+  </article>
+</Layout>
+<style>
+  .pd { display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; padding: 64px 0 96px; align-items: start; }
+  .pd-img :global(img) { width: 100%; height: auto; }
+  .labels { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tag, .status { padding: 4px 12px; font-size: 12px; font-weight: 800; text-transform: uppercase; color: #fff; line-height: 20px; }
+  .tag { background: #0f2a4d; }
+  .status { background: var(--red); }
+  h1 { font-size: 40px; line-height: 48px; margin-bottom: 8px; color: #0f2a4d; }
+  .sub { font-size: 18px; margin-bottom: 28px; }
+  .specs { margin: 0 0 32px; border-top: 1px solid var(--line); }
+  .specs div { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  dt { display: flex; align-items: center; gap: 10px; color: var(--text); }
+  dt :global(svg) { color: #0f2a4d; }
+  dd { margin: 0; font-weight: 700; color: var(--ink); text-align: right; }
+  .back { display: block; margin-top: 20px; font-weight: 700; color: var(--ink); }
+  .back:hover { color: var(--red); }
+  @media (max-width: 1023px) { .pd { grid-template-columns: 1fr; gap: 32px; } h1 { font-size: 30px; line-height: 38px; } }
+</style>

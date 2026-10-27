@@ -1,0 +1,207 @@
+---
+import { Image } from 'astro:assets';
+import { nav, mega, site } from '../data/site';
+import { upload } from '../lib/img';
+import logo from '../assets/uploads/Maxim-logo.png';
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? path === '/' : href !== '#' && path.startsWith(href));
+---
+<header class="hdr" id="top">
+  <div class="hdr-in">
+    <a href="/" class="logo" aria-label="Maxim Thermal Engineering, home">
+      <Image src={logo} alt="Maxim Thermal Engineering" width={260} height={60} loading="eager" />
+    </a>
+    <nav class="menu" aria-label="Main">
+      <ul>
+        {nav.map((n) => (
+          <li class:list={['mi', { mega: n.mega, active: isActive(n.href) }]}>
+            {n.mega ? (
+              <button type="button" class="mi-link" aria-expanded="false" aria-controls="megamenu">{n.label}</button>
+            ) : (
+              <a class="mi-link" href={n.href} aria-current={isActive(n.href) ? 'page' : undefined}>{n.label}</a>
+            )}
+            {n.mega && (
+              <div class="megamenu" id="megamenu">
+                <div class="mm-tabs" role="tablist" aria-label="Offerings">
+                  {mega.map((m, i) => (
+                    <button type="button" role="tab" class:list={['mm-tab', { on: i === 0 }]} id={`mm-tab-${i}`} aria-selected={i === 0 ? 'true' : 'false'} aria-controls={`mm-panel-${i}`}><span>{m.tab}</span></button>
+                  ))}
+                </div>
+                <div class="mm-panels">
+                  {mega.map((m, i) => {
+                    const img = upload(m.img);
+                    return (
+                      <div class="mm-panel" role="tabpanel" id={`mm-panel-${i}`} aria-labelledby={`mm-tab-${i}`} hidden={i !== 0}>
+                        <div class="mm-left">
+                          {img && <Image src={img} alt={m.tab} width={460} loading="lazy" />}
+                          <p>{m.text}</p>
+                          <a class="btn" href={m.href}>Discover more <svg class="chev" viewBox="0 0 7 11" aria-hidden="true"><path d="M1 1l4.5 4.5L1 10" fill="none" stroke="currentColor" stroke-width="1.6" /></svg></a>
+                        </div>
+                        <ul class="mm-list">
+                          {m.items.map((it) => (
+                            <li><svg class="chev-ico" width="9" height="14" viewBox="0 0 9 14" aria-hidden="true"><path d="M1.5 1.5L7 7l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="2.4" /></svg>{it}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </nav>
+    <div class="tools">
+      <button type="button" class="search-toggle" aria-label="Search" aria-expanded="false" aria-controls="search-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7" fill="none" stroke="currentColor" stroke-width="2" /><path d="M16 16l6 6" stroke="currentColor" stroke-width="2" /></svg>
+      </button>
+      <a class="quote" href="/inquiry/">Get a Quote <svg class="chev" viewBox="0 0 7 11" aria-hidden="true"><path d="M1 1l4.5 4.5L1 10" fill="none" stroke="currentColor" stroke-width="1.6" /></svg></a>
+      <button type="button" class="burger" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <form class="search-box" id="search-box" action="https://www.google.com/search" method="get" target="_blank" hidden>
+    <div class="container">
+      <label class="sr-only" for="s">Search</label>
+      <input id="s" type="search" name="q" placeholder="Search..." autocomplete="off" />
+      <input type="hidden" name="as_sitesearch" value="maximthermalengg.com" />
+    </div>
+  </form>
+  <div class="mob-menu" id="mobile-menu" hidden>
+    <ul>
+      {nav.map((n) => n.mega ? (
+        <li class="has-sub">
+          <button type="button" class="mob-sub-toggle" aria-expanded="false">{n.label}<span aria-hidden="true">+</span></button>
+          <ul class="mob-sub" hidden>
+            {mega.map((m) => <li><a href={m.href}>{m.tab}</a></li>)}
+          </ul>
+        </li>
+      ) : (
+        <li><a href={n.href}>{n.label}</a></li>
+      ))}
+      <li><a href="/inquiry/" class="mob-quote">Get a Quote</a></li>
+    </ul>
+  </div>
+</header>
+<div class="mm-scrim" hidden></div>
+
+<style>
+  .hdr { position: sticky; top: 0; z-index: 50; background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.06); }
+  .hdr-in { display: flex; align-items: center; height: var(--header-h); padding-left: 72px; }
+  .logo { flex: none; margin-right: 72px; }
+  .logo :global(img) { width: 260px; height: 60px; object-fit: contain; }
+  .menu { flex: 1; height: 100%; }
+  .menu > ul { display: flex; height: 100%; margin: 0; padding: 0; list-style: none; }
+  .mi { position: static; display: flex; align-items: center; margin-left: 40px; }
+  .mi:first-child { margin-left: 0; }
+  .mi-link { position: relative; padding: 0; background: none; border: 0; cursor: pointer; font-size: 16px; font-weight: 600; letter-spacing: .25px; color: #000; line-height: var(--header-h); }
+  .mi-link::after { content: ''; position: absolute; left: 0; right: 0; bottom: 30px; height: 2px; background: var(--red); transform: scaleX(0); transform-origin: left; transition: transform .25s; }
+  .mi.active .mi-link::after, .mi-link:hover::after, .mi.open .mi-link::after { transform: scaleX(1); }
+
+  .megamenu { position: absolute; top: 100%; left: 50%; width: 1200px; max-width: calc(100vw - 48px); transform: translateX(-50%); display: none; background: #fff; box-shadow: 0 16px 40px rgba(0,0,0,.12); }
+  .mi.open .megamenu { display: flex; }
+  .mm-tabs { flex: 0 0 240px; background: var(--grey); padding: 32px 0; display: flex; flex-direction: column; }
+  .mm-tab { position: relative; text-align: left; background: none; border: 0; cursor: pointer; padding: 12px 40px; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink); }
+  .mm-tab span { background-image: linear-gradient(var(--red), var(--red)); background-size: 0 2px; background-repeat: no-repeat; background-position: 0 100%; transition: background-size .25s; padding-bottom: 2px; }
+  .mm-tab.on span, .mm-tab:hover span { background-size: 100% 2px; }
+  .mm-tab.on::after { content: ''; position: absolute; right: 0; top: 50%; margin-top: -8px; border: 8px solid transparent; border-right-color: #fff; }
+  .mm-panels { flex: 1; padding: 40px; min-height: 360px; }
+  .mm-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .mm-panel[hidden] { display: none; }
+  .mm-left :global(img) { width: 100%; height: auto; margin-bottom: 20px; }
+  .mm-left p { font-size: 14px; line-height: 24px; color: var(--ink); margin-bottom: 16px; }
+  .mm-left .btn { height: 48px; padding: 0 28px; font-size: 14px; }
+  .mm-list { list-style: none; margin: 0; padding: 0; }
+  .mm-list li { display: flex; gap: 14px; align-items: flex-start; font-size: 16px; line-height: 24px; font-weight: 600; color: var(--ink); margin-bottom: 24px; }
+  .mm-list .chev-ico { margin-top: 5px; }
+  .mm-scrim { position: fixed; inset: 0; z-index: 40; }
+
+  .tools { display: flex; align-items: center; height: 100%; margin-left: auto; }
+  .search-toggle { display: grid; place-items: center; width: 44px; height: 44px; background: none; border: 0; color: #bdbdbd; cursor: pointer; }
+  .search-toggle:hover { color: var(--ink); }
+  .quote { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 180px; height: var(--header-h); margin-left: 24px; background: var(--red); color: #fafafa; font-weight: 600; font-size: 16px; letter-spacing: .25px; transition: background-color .2s; }
+  .quote:hover { background: var(--ink); color: #fff; }
+  .chev { width: 7px; height: 11px; }
+  .burger { display: none; width: 44px; height: 44px; margin-right: 12px; background: none; border: 0; cursor: pointer; flex-direction: column; justify-content: center; gap: 5px; padding: 0 10px; }
+  .burger span { display: block; height: 2px; background: var(--red); }
+
+  .search-box { border-top: 1px solid var(--line); background: #fff; padding: 16px 0; }
+  .search-box input[type=search] { width: 100%; height: 56px; border: 0; border-bottom: 1px solid var(--line); font-size: 18px; color: var(--text); outline: none; }
+
+  .mob-menu { border-top: 1px solid var(--line); background: #fff; max-height: calc(100vh - var(--header-h)); overflow-y: auto; }
+  .mob-menu ul { list-style: none; margin: 0; padding: 0; }
+  .mob-menu li a, .mob-sub-toggle { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 48px; padding: 0 24px; border: 0; border-bottom: 1px solid var(--line); background: none; font-size: 16px; font-weight: 700; color: var(--ink); text-align: left; cursor: pointer; }
+  .mob-sub li a { padding-left: 40px; font-weight: 600; }
+  .mob-quote { background: var(--red) !important; color: #fff !important; }
+
+  @media (max-width: 1279px) {
+    .hdr-in { padding-left: 32px; }
+    .logo { margin-right: 32px; }
+    .mi { margin-left: 28px; }
+  }
+  @media (max-width: 1023px) {
+    .hdr-in { padding-left: 16px; }
+    .logo :global(img) { width: 190px; height: 44px; }
+    .menu, .search-toggle, .quote { display: none; }
+    .burger { display: flex; }
+  }
+</style>
+
+<script>
+  const hdr = document.querySelector<HTMLElement>('.hdr')!;
+  const li = hdr.querySelector<HTMLElement>('.mi.mega');
+  const toggle = li?.querySelector<HTMLButtonElement>('.mi-link');
+  const scrim = document.querySelector<HTMLElement>('.mm-scrim');
+  const setOpen = (open: boolean) => {
+    if (!li || !toggle) return;
+    li.classList.toggle('open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    if (scrim) scrim.hidden = !open;
+  };
+  if (li && toggle) {
+    toggle.addEventListener('click', () => setOpen(!li.classList.contains('open')));
+    const hover = matchMedia('(hover: hover)').matches;
+    let t: number | undefined;
+    if (hover) {
+      li.addEventListener('mouseenter', () => { clearTimeout(t); setOpen(true); });
+      li.addEventListener('mouseleave', () => { t = window.setTimeout(() => setOpen(false), 150); });
+    }
+    scrim?.addEventListener('click', () => setOpen(false));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { setOpen(false); toggle.focus(); } });
+    li.addEventListener('focusout', (e) => { if (!li.contains(e.relatedTarget as Node)) setOpen(false); });
+    const tabs = [...li.querySelectorAll<HTMLButtonElement>('.mm-tab')];
+    const show = (i: number) => tabs.forEach((tb, j) => {
+      tb.classList.toggle('on', i === j);
+      tb.setAttribute('aria-selected', String(i === j));
+      const p = document.getElementById(tb.getAttribute('aria-controls')!);
+      if (p) p.hidden = i !== j;
+    });
+    tabs.forEach((tb, i) => { tb.addEventListener('click', () => show(i)); tb.addEventListener('mouseenter', () => show(i)); });
+  }
+
+  const sBtn = hdr.querySelector<HTMLButtonElement>('.search-toggle');
+  const sBox = hdr.querySelector<HTMLFormElement>('.search-box');
+  sBtn?.addEventListener('click', () => {
+    if (!sBox) return;
+    sBox.hidden = !sBox.hidden;
+    sBtn.setAttribute('aria-expanded', String(!sBox.hidden));
+    if (!sBox.hidden) sBox.querySelector('input')?.focus();
+  });
+
+  const burger = hdr.querySelector<HTMLButtonElement>('.burger');
+  const mob = hdr.querySelector<HTMLElement>('.mob-menu');
+  burger?.addEventListener('click', () => {
+    if (!mob) return;
+    mob.hidden = !mob.hidden;
+    burger.setAttribute('aria-expanded', String(!mob.hidden));
+  });
+  hdr.querySelectorAll<HTMLButtonElement>('.mob-sub-toggle').forEach((b) => b.addEventListener('click', () => {
+    const sub = b.nextElementSibling as HTMLElement;
+    sub.hidden = !sub.hidden;
+    b.setAttribute('aria-expanded', String(!sub.hidden));
+    b.querySelector('span')!.textContent = sub.hidden ? '+' : '−';
+  }));
+</script>

@@ -1,0 +1,149 @@
+---
+// "Engineering Solutions in Action" projects page, built from the owner's design.
+import { Image } from 'astro:assets';
+import SpecIcon from './SpecIcon.astro';
+import { portfolio, filters } from '../data/portfolio';
+import { upload, bgUrl } from '../lib/img';
+// compact: just the filter tabs and cards (used on the homepage).
+interface Props { compact?: boolean }
+const { compact = false } = Astro.props;
+const heroBg = await bgUrl('Industrial-Refinery-by-the-Harbor.png', 1600);
+const ctaBg = await bgUrl('Spacious-Industrial-Plant-with-Cooling-Machinery.webp', 1600);
+---
+{!compact && <section class="ph" style={heroBg ? `--bg:url(${heroBg})` : ''}>
+  <div class="ph-in">
+    <div class="ph-text">
+      <p class="eyebrow">Our Projects</p>
+      <h1>Engineering Solutions in Action</h1>
+      <p class="lead">From custom heat exchangers and radiators to industrial cooling and heating systems, we deliver reliable thermal engineering solutions for diverse industrial applications.</p>
+    </div>
+    <ul class="badges">
+      <li><SpecIcon name="gear" size={34} /><span>Custom Engineered</span></li>
+      <li><SpecIcon name="shield" size={34} /><span>Built for Reliability</span></li>
+      <li><SpecIcon name="factory" size={34} /><span>Proven in Industry</span></li>
+    </ul>
+  </div>
+</section>}
+
+<section class:list={['pw', { compact }]}>
+  <div class="filters" role="group" aria-label="Filter projects">
+    {filters.map((f, i) => <button type="button" class:list={['fb', { on: i === 0 }]} data-filter={i === 0 ? '*' : f} aria-pressed={i === 0 ? 'true' : 'false'}>{f}</button>)}
+  </div>
+  <p class="sr-only" aria-live="polite" id="pf-status"></p>
+  <div class="grid">
+    {portfolio.map((p) => {
+      const m = upload(p.img);
+      return (
+        <article class="pc" data-cats={p.cats.join('|')}>
+          <div class="pc-img">
+            {m && <Image src={m} alt={`${p.title}, ${p.subtitle}`} width={480} height={240} fit="cover" widths={[480, 720]} sizes="(max-width: 599px) 100vw, (max-width: 1023px) 50vw, 25vw" loading="lazy" />}
+            <span class="tag">{p.tag}</span>
+            <span class:list={['status', { svc: p.status === 'Service Project' }]}>{p.status}</span>
+          </div>
+          <div class="pc-body">
+            {compact ? <h3 class="pt">{p.title}</h3> : <h2 class="pt">{p.title}</h2>}
+            <p class="sub">{p.subtitle}</p>
+            <ul class="specs">
+              {p.specs.map((s) => <li><SpecIcon name={s.icon} /><span><small>{s.label}</small><b>{s.value}</b></span></li>)}
+            </ul>
+            <p class="client"><SpecIcon name="user" size={20} />Client: <b>{p.client}</b></p>
+            <a class="vbtn" href={`/project/${p.slug}/`}>View Project Details <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
+      );
+    })}
+  </div>
+
+  {!compact && <div class="cta" style={ctaBg ? `--bg:url(${ctaBg})` : ''}>
+    <SpecIcon name="worker" size={64} />
+    <div class="cta-text">
+      <h2>Have a Similar <b>Requirement?</b></h2>
+      <p>Our engineering team can design and manufacture a customized thermal solution for your application.</p>
+    </div>
+    <a class="cta-btn" href="/inquiry/">Discuss Your Project <span aria-hidden="true">→</span></a>
+  </div>}
+</section>
+
+<style>
+  .ph { position: relative; background: #fff; overflow: hidden; border-bottom: 1px solid var(--line); }
+  .ph::before { content: ''; position: absolute; inset: 0; background: var(--bg) left center / cover no-repeat; opacity: .14; filter: grayscale(1); }
+  .ph::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255,255,255,.2), #fff 30%, #fff 70%, rgba(255,255,255,.6)); }
+  .ph-in { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 32px; max-width: 1480px; margin: 0 auto; padding: 24px 24px 28px; }
+  .ph-text { text-align: center; max-width: 760px; justify-self: center; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 14px; margin: 0 0 4px; color: var(--red); font-weight: 800; font-size: 17px; letter-spacing: .5px; text-transform: uppercase; }
+  .eyebrow::before, .eyebrow::after { content: ''; width: 46px; height: 2px; background: var(--red); }
+  h1 { font-size: 38px; line-height: 46px; font-weight: 800; color: #0f2a4d; margin: 0 0 10px; }
+  .lead { font-size: 15px; line-height: 22px; color: #3b4250; margin: 0; }
+  .badges { display: flex; list-style: none; margin: 0; padding: 0; }
+  .badges li { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 120px; padding: 0 8px; text-align: center; font-size: 14px; line-height: 18px; color: #0f2a4d; border-left: 1px solid #c9d1dc; }
+  .badges :global(svg) { color: #0f2a4d; }
+
+  .pw { max-width: 1480px; margin: 0 auto; padding: 12px 24px 24px; }
+  .filters { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-bottom: 18px; }
+  .fb { min-height: 38px; padding: 0 26px; border: 0; background: #f1f3f6; color: #1f2933; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .fb:hover { background: #e3e7ed; }
+  .fb.on { background: var(--red); color: #fff; }
+
+  .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .pc { background: #fff; box-shadow: 0 2px 10px rgba(15, 42, 77, .1); display: flex; flex-direction: column; }
+  .pc[hidden] { display: none; }
+  .pc-img { position: relative; aspect-ratio: 2 / 1; overflow: hidden; }
+  .pc-img :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .tag, .status { position: absolute; top: 8px; padding: 4px 12px; font-size: 11px; font-weight: 800; letter-spacing: .3px; text-transform: uppercase; color: #fff; line-height: 20px; }
+  .tag { left: 14px; background: #0f2a4d; }
+  .status { right: 12px; background: var(--red); }
+  .status.svc { background: #1e4f8a; }
+  .pc-body { display: flex; flex-direction: column; flex: 1; padding: 10px 18px 14px; }
+  .pw.compact { padding: 0; }
+  .pc .pt { font-size: 19px; line-height: 24px; font-weight: 800; color: #0f2a4d; margin: 0; }
+  .sub { font-size: 14px; line-height: 20px; color: #3b4250; margin: 0 0 10px; }
+  .specs { list-style: none; margin: 0 0 10px; padding: 0; display: grid; grid-template-columns: repeat(3, auto); gap: 8px; justify-content: space-between; }
+  .specs li { display: flex; align-items: center; gap: 8px; }
+  .specs :global(svg) { color: #0f2a4d; flex: none; }
+  .specs span { display: flex; flex-direction: column; line-height: 15px; }
+  .specs small { font-size: 11px; color: #3b4250; }
+  .specs b { font-size: 11px; color: #111; font-weight: 700; }
+  .client { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 4px 10px; background: #f3f5f8; font-size: 14px; color: #3b4250; }
+  .client :global(svg) { color: #0f2a4d; }
+  .client b { color: #111; font-weight: 700; }
+  .vbtn { align-self: flex-start; margin-top: auto; display: inline-flex; align-items: center; gap: 12px; min-height: 34px; padding: 0 22px; background: var(--red); color: #fff; font-size: 14px; font-weight: 600; }
+  .vbtn:hover { background: #a51f21; }
+
+  .cta { position: relative; display: flex; align-items: center; gap: 36px; margin-top: 20px; padding: 18px 24px 18px 44px; background: #0f2a4d; color: #fff; overflow: hidden; }
+  .cta::before { content: ''; position: absolute; inset: 0; background: var(--bg) center / cover; opacity: .12; mix-blend-mode: luminosity; }
+  .cta > * { position: relative; }
+  .cta-text { flex: 1; }
+  .cta h2 { color: #fff; font-size: 32px; line-height: 38px; font-weight: 400; margin: 0 0 4px; }
+  .cta h2 b { font-weight: 800; }
+  .cta p { margin: 0; font-size: 16px; line-height: 24px; color: #dbe3ee; }
+  .cta-btn { display: inline-flex; align-items: center; gap: 14px; min-height: 50px; padding: 0 28px; background: var(--red); color: #fff; font-size: 17px; font-weight: 600; flex: none; }
+  .cta-btn:hover { background: #a51f21; }
+
+  @media (max-width: 1279px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 1023px) {
+    .ph-in { grid-template-columns: 1fr; }
+    .badges { justify-content: center; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cta { flex-wrap: wrap; padding: 24px; gap: 16px; }
+  }
+  @media (max-width: 599px) {
+    h1 { font-size: 28px; line-height: 34px; }
+    .badges li { width: 104px; font-size: 13px; }
+    .grid { grid-template-columns: 1fr; }
+    .fb { padding: 0 16px; font-size: 14px; min-height: 44px; }
+    .cta h2 { font-size: 26px; line-height: 32px; }
+  }
+</style>
+
+<script>
+  const btns = [...document.querySelectorAll<HTMLButtonElement>('.fb')];
+  const cards = [...document.querySelectorAll<HTMLElement>('.pc')];
+  const status = document.getElementById('pf-status');
+  btns.forEach((b) => b.addEventListener('click', () => {
+    const f = b.dataset.filter!;
+    btns.forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+    let n = 0;
+    cards.forEach((c) => { const show = f === '*' || c.dataset.cats!.split('|').includes(f); c.hidden = !show; if (show) n++; });
+    if (status) status.textContent = `${n} project${n === 1 ? '' : 's'} shown`;
+  }));
+</script>

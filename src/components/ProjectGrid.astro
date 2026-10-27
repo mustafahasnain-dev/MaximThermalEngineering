@@ -1,0 +1,47 @@
+---
+// Project cards used on the projects archive and under each project.
+import { Image } from 'astro:assets';
+import { projects } from '../data/projects';
+import { upload } from '../lib/img';
+interface Props { exclude?: string; filters?: boolean; active?: 'all' | 'project' }
+const { exclude, filters = false, active = 'all' } = Astro.props;
+const list = projects.filter((p) => p.slug !== exclude);
+---
+{filters && (
+  <div class="pf">
+    <a href="/project/" class:list={{ on: active === 'all' }}>Show All</a>
+    <a href="/project-category/project/" class:list={{ on: active === 'project' }}>Project</a>
+  </div>
+)}
+<div class="pg">
+  {list.map((p) => {
+    const m = upload(p.img);
+    return (
+      <article class="pc">
+        <a href={`/project/${p.slug}/`} class="pc-img">
+          {m && <Image src={m} alt={p.title} width={400} height={320} fit="cover" loading="lazy" />}
+        </a>
+        <div class="pc-body">
+          <a class="pc-cat" href="/project-category/project/">Project</a>
+          <h4><a href={`/project/${p.slug}/`}>{p.title}</a></h4>
+        </div>
+      </article>
+    );
+  })}
+</div>
+<style>
+  .pf { display: flex; justify-content: center; gap: 8px; margin-bottom: 48px; }
+  .pf a { display: inline-flex; align-items: center; height: 44px; padding: 0 20px; font-size: 14px; font-weight: 700; color: var(--ink); border: 1px solid var(--line); }
+  .pf a.on, .pf a:hover { background: var(--red); border-color: var(--red); color: #fff; }
+  .pg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+  .pc { background: #fff; border: 1px solid var(--line); }
+  .pc-img { display: block; overflow: hidden; }
+  .pc-img :global(img) { width: 100%; aspect-ratio: 400 / 320; object-fit: cover; transition: transform .4s; }
+  .pc:hover .pc-img :global(img) { transform: scale(1.04); }
+  .pc-body { padding: 24px 24px 28px; }
+  .pc-cat { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--red); margin-bottom: 8px; }
+  .pc h4 { font-size: 20px; line-height: 28px; margin: 0; }
+  .pc h4 a:hover { color: var(--red); }
+  @media (max-width: 1023px) { .pg { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 599px) { .pg { grid-template-columns: 1fr; } }
+</style>

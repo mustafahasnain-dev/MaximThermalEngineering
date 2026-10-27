@@ -1,0 +1,9 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import TitleSection from '../../components/TitleSection.astro';
+import BlogList from '../../components/BlogList.astro';
+---
+<Layout title="Blog - Maxim Thermal Engineering" description="Articles from Maxim Thermal Engineering on heat exchanger design, fabrication, repair and maintenance in Karachi and across Pakistan.">
+  <TitleSection title="Blog" crumbs={[{ label: 'Home', href: '/' }, { label: 'Blog' }]} />
+  <BlogList />
+</Layout>

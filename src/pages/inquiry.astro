@@ -1,0 +1,15 @@
+---
+// Same inquiry form as the old /inquiry/ page: a Google Apps Script form, so submissions keep going to the same place.
+import Layout from '../layouts/Layout.astro';
+const FORM = 'https://script.google.com/macros/s/AKfycbw5FR_E2yz7fdo7ACM8BMltvTQpEQklhE7VqjtUtGTGS8exrPKj5dsLiApm_2MmS2d9/exec';
+---
+<Layout title="Maxim Thermal Engineering | Inquiry Form" description="Send your radiator, heat exchanger, cooler or HVAC requirement to Maxim Thermal Engineering using the inquiry form.">
+  <h1 class="sr-only">Inquiry Form</h1>
+  <iframe class="inq" src={FORM} title="Maxim Thermal Engineering Inquiry Form" allow="clipboard-read; clipboard-write"></iframe>
+  <noscript><p class="fallback">JavaScript is required to use this inquiry form. <a href={FORM}>Open the inquiry form directly</a></p></noscript>
+</Layout>
+<style>
+  .inq { display: block; width: 100%; height: calc(100vh - var(--header-h)); height: calc(100dvh - var(--header-h)); min-height: 640px; border: 0; }
+  .fallback { padding: 16px; text-align: center; }
+  .fallback a { color: var(--red); }
+</style>

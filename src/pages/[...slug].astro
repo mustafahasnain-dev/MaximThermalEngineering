@@ -1,0 +1,30 @@
+---
+// Every old page built from WPBakery rows: services, about, contact, packing machines.
+import Layout from '../layouts/Layout.astro';
+import Blocks from '../components/wp/Blocks.astro';
+import { pages, decode, type PageData } from '../lib/pages';
+
+export function getStaticPaths() {
+  return [...pages.entries()]
+    .filter(([name]) => name !== 'home' && name !== 'project' && !name.startsWith('project_'))
+    .map(([name, data]) => ({ params: { slug: name }, props: { data } }));
+}
+const { data } = Astro.props as { data: PageData };
+// The old Packing Machines page opened with a full-screen slider showing only its title.
+const slider = Astro.params.slug === 'packing-machines' ? ['Packing', 'Machines'] : null;
+---
+<Layout title={decode(data.title)} description={data.description}>
+  {slider && (
+    <section class="slide" aria-label={slider.join(' ')}>
+      <p class="slide-title">{slider.map((w) => <span>{w}</span>)}</p>
+    </section>
+  )}
+  <Blocks items={data.rows} />
+</Layout>
+
+<style>
+  .slide { display: flex; align-items: center; height: 100vh; min-height: 480px; max-height: 900px; padding: 0 72px; background: #212121; }
+  .slide-title { margin: 0; color: #fff; font-size: 96px; line-height: 100px; font-weight: 800; }
+  .slide-title span { display: block; }
+  @media (max-width: 767px) { .slide { height: 420px; padding: 0 24px; } .slide-title { font-size: 52px; line-height: 58px; } }
+</style>
