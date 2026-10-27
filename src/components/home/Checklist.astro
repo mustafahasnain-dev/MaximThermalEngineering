@@ -1,0 +1,35 @@
+---
+import { site } from '../../data/site';
+import LeadHidden from '../ui/LeadHidden.astro';
+---
+<section id="checklist" class="lm" aria-labelledby="lm-h">
+  <div class="wrap in">
+    <div class="copy">
+      <h2 class="banner" id="lm-h">Free quote checklist</h2>
+      <p class="lead">A one-page guide to what we need for an accurate radiator or heat exchanger quote: make and model, capacity, nameplate photo, city and drawings. Get it on WhatsApp or by email.</p>
+    </div>
+    <div class="box">
+      <form action={site.formAction} method="post" novalidate data-lead-form="checklist" data-track="generate_lead" data-track-form="checklist">
+        <LeadHidden form="checklist" />
+        <div>
+          <label class="lbl" for="lm-ph">WhatsApp number or email</label>
+          <input class="fld" id="lm-ph" name="contact" type="text" autocomplete="email" required data-phone-or-email aria-describedby="lm-ph-err" />
+          <span class="err" id="lm-ph-err"></span>
+        </div>
+        <button class="btn btn-red" type="submit">Send me the checklist &rsaquo;</button>
+      </form>
+      <p class="ok" role="status" tabindex="-1" data-lead-success hidden>Thank you. We will send the checklist to the contact you gave.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .lm { background: var(--grey); border-top: 1px solid var(--rule); }
+  .in { display: flex; flex-wrap: wrap; align-items: center; gap: 36px 56px; padding-top: 72px; padding-bottom: 72px; }
+  .copy { flex: 1 1 420px; min-width: 0; }
+  .copy .lead { line-height: 1.65; max-width: none; }
+  .box { flex: 1 1 360px; max-width: 480px; min-width: 0; background: var(--white); border-top: 6px solid var(--red); padding: 28px; }
+  form { display: flex; flex-direction: column; gap: 14px; }
+  .ok { font-weight: 800; font-size: 17px; line-height: 1.55; }
+  @media (max-width: 700px) { .in { padding-top: 64px; padding-bottom: 64px; } .box { padding: 24px 16px; max-width: none; } }
+</style>

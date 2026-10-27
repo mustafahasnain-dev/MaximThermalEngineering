@@ -1,0 +1,28 @@
+---
+import { getCollection } from 'astro:content';
+import { wa } from '../../data/site';
+import WaIcon from '../ui/WaIcon.astro';
+import FaqAccordion from '../ui/FaqAccordion.astro';
+
+const faqs = (await getCollection('faqs')).filter((f) => f.data.topics.includes('home')).map((f) => f.data);
+---
+<section id="faq" class="faq" aria-labelledby="faq-h">
+  <div class="wrap in">
+    <div class="side">
+      <h2 class="banner" id="faq-h">Questions</h2>
+      <p>Cannot find your answer? Message us and we will reply directly.</p>
+      <a class="btn btn-wa" href={wa('Hello Maxim Thermal, I have a question.')} data-track="whatsapp_click" data-track-location="faq"><WaIcon /> Ask on WhatsApp</a>
+    </div>
+    <div class="body">
+      <FaqAccordion items={faqs} id="faq" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .in { display: flex; flex-wrap: wrap; gap: 48px; padding-top: var(--section-y); padding-bottom: var(--section-y); }
+  .side { flex: 1 1 320px; min-width: 0; }
+  .side p { font-size: 18px; line-height: 1.65; color: var(--muted); margin-top: 20px; margin-bottom: 24px; }
+  .body { flex: 2 1 560px; min-width: 0; }
+  @media (max-width: 700px) { .side, .body { flex-basis: 100%; } }
+</style>

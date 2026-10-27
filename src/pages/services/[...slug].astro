@@ -1,0 +1,17 @@
+---
+import { render } from 'astro:content';
+import ServiceLayout from '../../layouts/ServiceLayout.astro';
+import { getServices, type Service } from '../../lib/services';
+
+export async function getStaticPaths() {
+  const all = await getServices();
+  return all.map((entry) => ({ params: { slug: entry.id }, props: { entry, all } }));
+}
+
+interface Props { entry: Service; all: Service[] }
+const { entry, all } = Astro.props;
+const { Content } = await render(entry);
+---
+<ServiceLayout entry={entry} all={all}>
+  <Content />
+</ServiceLayout>

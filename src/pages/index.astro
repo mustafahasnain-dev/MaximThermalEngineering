@@ -1,0 +1,45 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/home/Hero.astro';
+import Brands from '../components/home/Brands.astro';
+import Finder from '../components/home/Finder.astro';
+import Offerings from '../components/home/Offerings.astro';
+import About from '../components/home/About.astro';
+import Locations from '../components/home/Locations.astro';
+import HowItWorks from '../components/home/HowItWorks.astro';
+import Projects from '../components/home/Projects.astro';
+import WhyMaxim from '../components/home/WhyMaxim.astro';
+import Clients from '../components/home/Clients.astro';
+import Checklist from '../components/home/Checklist.astro';
+import Faq from '../components/home/Faq.astro';
+import ContactSection from '../components/ui/ContactSection.astro';
+
+const faqs = (await getCollection('faqs')).filter((f) => f.data.topics.includes('home'));
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map(({ data: f }) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+};
+---
+<BaseLayout
+  title="Industrial Radiators & Heat Exchangers | Maxim Thermal"
+  description="Industrial radiators, heavy machinery radiators, heat exchangers and HVAC coils: design, manufacture, repair and installation across Pakistan."
+  schema={[faqSchema]}
+  localBusiness
+>
+  <link slot="head" rel="preload" as="image" href="/video/hero-poster.jpg" fetchpriority="high" />
+  <Hero />
+  <Brands />
+  <Finder />
+  <Offerings />
+  <About />
+  <Locations />
+  <HowItWorks />
+  <Projects />
+  <WhyMaxim />
+  <Clients />
+  <Checklist />
+  <Faq />
+  <ContactSection />
+</BaseLayout>

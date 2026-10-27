@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Maxim Thermal Tracking Map</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap">
+<style>
+body{margin:0;font-family:Nunito,'Helvetica Neue',Arial,sans-serif;color:#1B1D21;background:#FFFFFF}
+*{box-sizing:border-box}
+h1,h2,p{margin:0}
+table{border-collapse:collapse;width:100%}
+th{text-align:left;font-weight:900;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;background:#1B1D21;color:#FFFFFF;padding:12px 14px}
+td{padding:12px 14px;font-size:15px;line-height:1.45;border-bottom:1px solid #D7DADF;vertical-align:top}
+code{font-family:ui-monospace,Menlo,monospace;font-size:13px;background:#F3F4F6;padding:2px 6px}
+</style>
+</helmet>
+<div style="width: 1000px; padding: 40px; background: #FFFFFF">
+  <h1 style="font-weight: 900; font-size: 34px; line-height: 1.1; margin-bottom: 8px">Lead tracking map</h1>
+  <p style="font-size: 17px; line-height: 1.6; color: #4B5058; margin-bottom: 28px">Every button and form on the homepage sends one named event to GA4, so you can see which section and which service produces leads. Each lead also carries its source, page and UTM fields into the Google Sheet.</p>
+  <table>
+    <thead><tr><th>Where</th><th>Action</th><th>Event name</th><th>Data sent</th></tr></thead>
+    <tbody>
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+        <tr><td>{{r.where}}</td><td>{{r.what}}</td><td><code>{{r.ev}}</code></td><td>{{r.data}}</td></tr>
+      </sc-for>
+    </tbody>
+  </table>
+  <p style="font-size: 15px; line-height: 1.6; color: #4B5058; margin-top: 24px"><strong style="color: #1B1D21">Primary conversions in GA4:</strong> <code>generate_lead</code> (any form or call-back), <code>whatsapp_click</code>, <code>phone_click</code>. Forms redirect to a thank-you page so Google Ads and Search Console can count them.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1000,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      rows: [
+        { where: 'Hero quote form', what: 'Submit', ev: 'generate_lead', data: 'form=hero, need, city, urgency' },
+        { where: 'Hero call-back box', what: 'Submit', ev: 'generate_lead', data: 'form=callback' },
+        { where: 'Hero, header, footer, urgent strip', what: 'Tap phone number', ev: 'phone_click', data: 'location' },
+        { where: 'Hero, offerings, FAQ, contact', what: 'Tap WhatsApp', ev: 'whatsapp_click', data: 'location, service' },
+        { where: '"What are you cooling?" finder', what: 'Choose equipment', ev: 'finder_select', data: 'equipment type' },
+        { where: 'Finder result', what: 'Tap quote or WhatsApp', ev: 'finder_cta', data: 'equipment type, channel' },
+        { where: 'Offerings blocks and cards', what: 'Tap quote button', ev: 'cta_quote', data: 'service' },
+        { where: 'Locations', what: 'Tap directions', ev: 'directions_click', data: 'city' },
+        { where: 'Free checklist', what: 'Submit', ev: 'generate_lead', data: 'form=checklist' },
+        { where: 'Contact form', what: 'Submit', ev: 'generate_lead', data: 'form=contact' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

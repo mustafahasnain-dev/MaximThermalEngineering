@@ -1,0 +1,24 @@
+---
+// Visible breadcrumb trail. The matching BreadcrumbList JSON-LD is built by SEO.astro from the same items.
+export interface Crumb { name: string; href: string }
+interface Props { items: Crumb[] }
+const { items } = Astro.props;
+---
+<nav class="bc" aria-label="Breadcrumb">
+  <ol>
+    {items.map((c, i) => (
+      <li>
+        {i < items.length - 1 ? <a href={c.href}>{c.name}</a> : <span aria-current="page">{c.name}</span>}
+      </li>
+    ))}
+  </ol>
+</nav>
+
+<style>
+  .bc ol { display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; margin: 0; padding: 0; list-style: none; font-size: 14px; font-weight: 700; }
+  li { display: flex; align-items: center; }
+  li + li::before { content: '/'; margin: 0 8px 0 4px; color: #9AA0A8; }
+  a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+  a:hover { color: var(--red-on-dark); }
+  span { opacity: 0.85; }
+</style>

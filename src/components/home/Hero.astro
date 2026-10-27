@@ -1,0 +1,145 @@
+---
+import { stats, waDefault } from '../../data/site';
+import WaIcon from '../ui/WaIcon.astro';
+import QuoteForm from './QuoteForm.astro';
+import CallbackBox from './CallbackBox.astro';
+---
+<section id="top" class="hero dark" aria-labelledby="hero-h">
+  <div class="bg" aria-hidden="true"></div>
+  <video
+    class="vid"
+    muted
+    loop
+    playsinline
+    preload="none"
+    poster="/video/hero-poster.jpg"
+    aria-hidden="true"
+    tabindex="-1"
+    data-hero-video
+  >
+    <source src="/video/hero-section-video.mp4" type="video/mp4" />
+  </video>
+  <div class="shade" aria-hidden="true"></div>
+
+  <div class="wrap in">
+    <div class="grid">
+      <div class="copy">
+        <h1 id="hero-h">Powering Performance Through Efficient Cooling</h1>
+        <p class="sub">Trusted industrial radiator solutions built for the toughest environments. Design, manufacture, repair and install, anywhere in Pakistan.</p>
+        <div class="ctas">
+          <a class="btn btn-red" href="#quote" data-track="cta_quote" data-track-service="hero">Get a Quote &rsaquo;</a>
+          <a class="btn btn-wa" href={waDefault} data-track="whatsapp_click" data-track-location="hero"><WaIcon /> WhatsApp us</a>
+        </div>
+      </div>
+
+      <div class="cb"><CallbackBox /></div>
+
+      <div class="form" id="quote"><QuoteForm /></div>
+
+      <div class="bar">
+        <dl class="stats">
+          {stats.map((s, i) => (
+            <div class:list={['stat', { 'hide-sm': i === 2 }]}>
+              <dt class="sr-only">{s.label}</dt>
+              <dd class="v" aria-hidden="true">{s.value}</dd>
+              <dd class="l"><span class="sr-only">{s.value} </span><span class="lg">{s.label}</span><span class="sm" aria-hidden="true">{s.short}</span></dd>
+            </div>
+          ))}
+        </dl>
+        <button class="pause" type="button" aria-label="Pause background video" aria-pressed="false" data-video-toggle hidden>
+          <svg class="i-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="4" width="5" height="16" /><rect x="14" y="4" width="5" height="16" /></svg>
+          <svg class="i-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z" /></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const video = document.querySelector<HTMLVideoElement>('[data-hero-video]');
+  const btn = document.querySelector<HTMLButtonElement>('[data-video-toggle]');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  if (video && btn) {
+    const sync = () => {
+      const paused = video.paused;
+      btn.setAttribute('aria-pressed', String(paused));
+      btn.setAttribute('aria-label', paused ? 'Play background video' : 'Pause background video');
+      btn.classList.toggle('is-paused', paused);
+    };
+    video.addEventListener('play', sync);
+    video.addEventListener('pause', sync);
+    // Only reveal the control once there is real video to control.
+    video.addEventListener('loadeddata', () => { btn.hidden = false; sync(); });
+    btn.addEventListener('click', () => (video.paused ? video.play() : video.pause()));
+
+    if (!reduce.matches) {
+      video.preload = 'auto';
+      video.play().catch(() => {});
+    } else {
+      // Reduced motion: keep the poster, but let users start it themselves if they want.
+      video.preload = 'metadata';
+    }
+  }
+</script>
+
+<style>
+  .hero { position: relative; color: var(--white); overflow: hidden; background: var(--hero); }
+  .bg { position: absolute; inset: 0; background: repeating-linear-gradient(135deg, #2B3A47 0, #2B3A47 14px, #33444F 14px, #33444F 28px); }
+  .vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(14, 22, 30, 0.95) 0%, rgba(14, 22, 30, 0.7) 55%, rgba(14, 22, 30, 0.5) 100%); }
+  .in { position: relative; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 460px);
+    grid-template-areas: 'copy form' 'cb form' 'bar bar';
+    grid-template-rows: auto 1fr auto;
+    column-gap: 48px;
+    padding-top: 72px;
+  }
+  .copy { grid-area: copy; }
+  .cb { grid-area: cb; max-width: 520px; }
+  .form { grid-area: form; align-self: start; }
+  .bar { grid-area: bar; }
+
+  h1 { font-weight: 900; font-size: clamp(38px, 5.2vw, 66px); line-height: 1.05; margin-bottom: 20px; }
+  .sub { font-size: clamp(18px, 1.8vw, 22px); line-height: 1.6; max-width: 560px; margin-bottom: 28px; }
+  .ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; }
+
+  .bar { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px 32px; border-top: 1px solid rgba(255, 255, 255, 0.35); padding-top: 22px; padding-bottom: 28px; margin-top: 40px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 20px 48px; margin: 0; }
+  .stat dd { margin: 0; }
+  .v { font-weight: 900; font-size: 38px; line-height: 1; }
+  .l { font-weight: 700; font-size: 14px; margin-top: 4px; color: #E4E8ED; }
+  .l .sm { display: none; }
+
+  .pause { width: 48px; height: 48px; background: rgba(255, 255, 255, 0.15); border: 2px solid var(--white); border-radius: 0; color: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none; }
+  .pause:hover { background: rgba(255, 255, 255, 0.3); }
+  .pause .i-play { display: none; }
+  .pause.is-paused .i-play { display: block; }
+  .pause.is-paused .i-pause { display: none; }
+
+  @media (max-width: 1000px) {
+    .grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'copy' 'cb' 'form' 'bar'; grid-template-rows: none; padding-top: 56px; }
+    .form { margin-top: 32px; max-width: 560px; }
+    .shade { background: linear-gradient(180deg, rgba(14, 22, 30, 0.9) 0%, rgba(14, 22, 30, 0.72) 100%); }
+  }
+
+  /* Mobile first screen follows design/Mobile.dc.html */
+  @media (max-width: 700px) {
+    .grid { grid-template-areas: 'copy' 'bar' 'cb' 'form'; padding-top: 36px; }
+    h1 { font-size: 36px; line-height: 1.06; margin-bottom: 16px; }
+    .sub { font-size: 18px; line-height: 1.55; color: #F1F4F7; }
+    .ctas { flex-direction: column; }
+    .ctas .btn { min-height: 54px; font-size: 18px; }
+    .bar { margin-top: 0; padding-top: 18px; padding-bottom: 32px; align-items: center; flex-wrap: nowrap; gap: 12px; }
+    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; flex: 1; }
+    .v { font-size: 28px; }
+    .l { font-size: 12px; line-height: 1.35; }
+    .l .lg { display: none; }
+    .l .sm { display: inline; }
+    .pause { align-self: flex-start; }
+    .form { margin: 28px -16px 0; max-width: none; }
+  }
+</style>

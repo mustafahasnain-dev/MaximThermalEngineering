@@ -1,0 +1,36 @@
+---
+import '@fontsource-variable/nunito/wght.css';
+import '../styles/global.css';
+import SEO, { type Props as SEOProps } from '../components/SEO.astro';
+import UrgentStrip from '../components/layout/UrgentStrip.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import MobileActionBar from '../components/layout/MobileActionBar.astro';
+
+type Props = SEOProps;
+const props = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#C62829" />
+    <SEO {...props} />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <UrgentStrip />
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <MobileActionBar />
+    <script>
+      import '../scripts/forms';
+    </script>
+  </body>
+</html>

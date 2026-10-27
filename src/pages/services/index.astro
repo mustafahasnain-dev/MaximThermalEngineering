@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/ui/Breadcrumbs.astro';
+import ContactSection from '../../components/ui/ContactSection.astro';
+import { getServices, topLevel, childrenOf, serviceUrl, label } from '../../lib/services';
+import { site } from '../../data/site';
+
+const all = await getServices();
+const groups = topLevel(all).map((s) => ({ s, kids: childrenOf(s.id, all) }));
+const crumbs = [{ name: 'Home', href: '/' }, { name: 'Services', href: '/services/' }];
+const schema = [{
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Maxim Thermal Engineering services',
+  itemListElement: groups.map(({ s }, i) => ({ '@type': 'ListItem', position: i + 1, name: s.data.title, url: new URL(serviceUrl(s.id), Astro.site).href })),
+}];
+---
+<BaseLayout
+  title="Cooling & Thermal Engineering Services | Maxim Thermal"
+  description="All Maxim Thermal Engineering services: industrial and heavy machinery radiators, heat exchangers, coolers, coils, HVAC, boilers, fabrication and solar."
+  breadcrumbs={crumbs}
+  schema={schema}
+>
+  <section class="top dark">
+    <div class="wrap top-in">
+      <Breadcrumbs items={crumbs} />
+      <h1>Our services</h1>
+      <p>Maxim Thermal Engineering designs, manufactures, repairs and installs cooling and thermal equipment for industry across Pakistan. Pick a service to see what we make, the specifications we work to and how a job runs, or <a href="#contact">ask for a quote</a>.</p>
+    </div>
+  </section>
+  <section class="sec">
+    <div class="wrap g2 list">
+      {groups.map(({ s, kids }) => (
+        <article class="card">
+          <h2><a href={serviceUrl(s.id)}>{s.data.title}</a></h2>
+          <p>{s.data.summary}</p>
+          {kids.length > 0 && (
+            <ul>{kids.map((k) => <li><a href={serviceUrl(k.id)}>{label(k)}</a></li>)}</ul>
+          )}
+          <a class="clink" href={serviceUrl(s.id)}>View {s.data.navLabel ?? s.data.title}<span class="sr-only"> service</span> &rsaquo;</a>
+        </article>
+      ))}
+    </div>
+  </section>
+  <ContactSection heading="Not sure which service you need?" intro={`Describe the equipment and the problem. Our engineers will point you to the right solution. Or call ${site.phoneDisplay}.`} formName="services_index" />
+</BaseLayout>
+
+<style>
+  .top { background: var(--darker); color: var(--white); }
+  .top-in { padding-top: 16px; padding-bottom: 56px; }
+  h1 { font-weight: 900; font-size: clamp(34px, 4.4vw, 56px); line-height: 1.06; margin: 16px 0 18px; }
+  .top p { font-size: 19px; line-height: 1.65; color: #E4E8ED; max-width: 760px; }
+  .top p a { text-decoration: underline; font-weight: 800; }
+  .sec { padding-top: 72px; padding-bottom: 72px; }
+  .card { background: var(--grey); border-top: 6px solid var(--red); padding: 28px; display: flex; flex-direction: column; gap: 12px; }
+  h2 { font-weight: 900; font-size: 23px; line-height: 1.2; }
+  h2 a:hover { color: var(--red-hover); text-decoration: underline; }
+  .card p { font-size: 16px; line-height: 1.65; color: var(--muted); }
+  ul { display: flex; flex-wrap: wrap; gap: 0 18px; }
+  ul a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; font-size: 15px; text-decoration: underline; text-underline-offset: 3px; }
+  @media (max-width: 700px) { .sec { padding-top: 48px; padding-bottom: 48px; } .card { padding: 24px 16px; } }
+</style>

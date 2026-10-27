@@ -1,0 +1,28 @@
+---
+import { clients, testimonials } from '../../data/home';
+---
+<section class="cl" aria-labelledby="cl-h">
+  <div class="wrap section">
+    <h2 class="banner" id="cl-h">Trusted by Pakistan's leading industries</h2>
+    <ul class="g6 logos" aria-label="Client logos">
+      {clients.map((c) => <li>{c}</li>)}
+    </ul>
+    <div class="g2">
+      {testimonials.map((t) => (
+        <figure>
+          <blockquote>{t.text}</blockquote>
+          <figcaption>{t.who}</figcaption>
+        </figure>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .logos { margin-top: 40px; margin-bottom: 48px; }
+  .logos li { background: var(--grey); min-height: 88px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 12px; font-weight: 800; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  figure { background: var(--grey); padding: 32px; display: flex; flex-direction: column; gap: 18px; border-top: 6px solid var(--red); }
+  blockquote { font-size: 19px; line-height: 1.6; }
+  figcaption { font-weight: 800; font-size: 14px; color: var(--muted); }
+  @media (max-width: 700px) { figure { padding: 24px 16px; } }
+</style>

@@ -1,0 +1,15 @@
+---
+// Hidden lead fields required on every form. Values are filled in by src/scripts/forms.ts.
+interface Props { form: string }
+const { form } = Astro.props;
+---
+<input type="hidden" name="form_name" value={form} />
+<input type="hidden" name="page_url" value="" />
+<input type="hidden" name="utm_source" value="" />
+<input type="hidden" name="utm_medium" value="" />
+<input type="hidden" name="utm_campaign" value="" />
+<input type="hidden" name="referrer" value="" />
+<input type="hidden" name="timestamp" value="" />
+<div class="hp" aria-hidden="true">
+  <label>Leave this field empty <input type="text" name="company_website" tabindex="-1" autocomplete="off" /></label>
+</div>
