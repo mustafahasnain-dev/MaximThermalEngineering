@@ -7,6 +7,8 @@ import { upload, bgUrl } from '../lib/img';
 // compact: just the filter tabs and cards (used on the homepage).
 interface Props { compact?: boolean }
 const { compact = false } = Astro.props;
+// The homepage pages through the projects six at a time (2 rows of 3); /project/ lists them all.
+const shown = portfolio;
 const heroBg = await bgUrl('Industrial-Refinery-by-the-Harbor.png', 1600);
 const ctaBg = await bgUrl('Spacious-Industrial-Plant-with-Cooling-Machinery.webp', 1600);
 ---
@@ -25,34 +27,40 @@ const ctaBg = await bgUrl('Spacious-Industrial-Plant-with-Cooling-Machinery.webp
   </div>
 </section>}
 
-<section class:list={['pw', { compact }]}>
+<section class:list={['pw', { compact }]} data-paged={compact ? 'true' : 'false'}>
   <div class="filters" role="group" aria-label="Filter projects">
     {filters.map((f, i) => <button type="button" class:list={['fb', { on: i === 0 }]} data-filter={i === 0 ? '*' : f} aria-pressed={i === 0 ? 'true' : 'false'}>{f}</button>)}
   </div>
   <p class="sr-only" aria-live="polite" id="pf-status"></p>
+  <p class="empty" hidden>No projects to show in this category yet.</p>
   <div class="grid">
-    {portfolio.map((p) => {
+    {shown.map((p) => {
       const m = upload(p.img);
       return (
         <article class="pc" data-cats={p.cats.join('|')}>
           <div class="pc-img">
-            {m && <Image src={m} alt={`${p.title}, ${p.subtitle}`} width={480} height={240} fit="cover" widths={[480, 720]} sizes="(max-width: 599px) 100vw, (max-width: 1023px) 50vw, 25vw" loading="lazy" />}
+            {m && <Image src={m} alt={`${p.title}, ${p.subtitle}`} width={480} height={240} fit="cover" widths={[480, 720]} sizes="(max-width: 599px) 100vw, (max-width: 1023px) 50vw, 33vw" loading="lazy" />}
             <span class="tag">{p.tag}</span>
-            <span class:list={['status', { svc: p.status === 'Service Project' }]}>{p.status}</span>
+            {!compact && <span class:list={['status', { svc: p.status === 'Service Project' }]}>{p.status}</span>}
           </div>
           <div class="pc-body">
             {compact ? <h3 class="pt">{p.title}</h3> : <h2 class="pt">{p.title}</h2>}
             <p class="sub">{p.subtitle}</p>
-            <ul class="specs">
-              {p.specs.map((s) => <li><SpecIcon name={s.icon} /><span><small>{s.label}</small><b>{s.value}</b></span></li>)}
-            </ul>
+            <p class="desc">{p.summary}</p>
             <p class="client"><SpecIcon name="user" size={20} />Client: <b>{p.client}</b></p>
-            <a class="vbtn" href={`/project/${p.slug}/`}>View Project Details <span aria-hidden="true">→</span></a>
+            {!compact && <a class="vbtn" href={`/project/${p.slug}/`}>View Project Details <span aria-hidden="true">→</span></a>}
           </div>
         </article>
       );
     })}
   </div>
+  {compact && (
+    <div class="pager" hidden>
+      <button type="button" class="pg-prev" aria-label="Previous projects"><svg width="8" height="13" viewBox="0 0 8 13" aria-hidden="true"><path d="M6.5 1.5l-5 5 5 5" fill="none" stroke="currentColor" stroke-width="1.8" /></svg></button>
+      <span class="pg-dots" role="presentation"></span>
+      <button type="button" class="pg-next" aria-label="Next projects"><svg width="8" height="13" viewBox="0 0 8 13" aria-hidden="true"><path d="M1.5 1.5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" /></svg></button>
+    </div>
+  )}
 
   {!compact && <div class="cta" style={ctaBg ? `--bg:url(${ctaBg})` : ''}>
     <SpecIcon name="worker" size={64} />
@@ -84,7 +92,7 @@ const ctaBg = await bgUrl('Spacious-Industrial-Plant-with-Cooling-Machinery.webp
   .fb:hover { background: #e3e7ed; }
   .fb.on { background: var(--red); color: #fff; }
 
-  .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
   .pc { background: #fff; box-shadow: 0 2px 10px rgba(15, 42, 77, .1); display: flex; flex-direction: column; }
   .pc[hidden] { display: none; }
   .pc-img { position: relative; aspect-ratio: 2 / 1; overflow: hidden; }
@@ -97,6 +105,23 @@ const ctaBg = await bgUrl('Spacious-Industrial-Plant-with-Cooling-Machinery.webp
   .pw.compact { padding: 0; }
   .pc .pt { font-size: 19px; line-height: 24px; font-weight: 800; color: #0f2a4d; margin: 0; }
   .sub { font-size: 14px; line-height: 20px; color: #3b4250; margin: 0 0 10px; }
+  .empty { text-align: center; padding: 32px 0; font-size: 16px; color: #3b4250; }
+  .empty[hidden] { display: none; }
+  .pager { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 24px; }
+  .pager[hidden] { display: none; }
+  .pager button { display: grid; place-items: center; width: 48px; height: 48px; border: 1px solid #c9d1dc; background: #fff; color: #0f2a4d; cursor: pointer; }
+  .pager button:hover:not(:disabled) { background: var(--red); border-color: var(--red); color: #fff; }
+  .pager button:disabled { opacity: .35; cursor: default; }
+  .pg-dots { display: flex; gap: 8px; }
+  .pg-dot { width: 10px; height: 10px; border-radius: 50%; background: #c9d1dc; }
+  .pg-dot.on { background: var(--red); }
+  .grid.slide-next { animation: slide-next .45s ease; }
+  .grid.slide-prev { animation: slide-prev .45s ease; }
+  @keyframes slide-next { from { opacity: 0; transform: translateX(48px); } to { opacity: 1; transform: none; } }
+  @keyframes slide-prev { from { opacity: 0; transform: translateX(-48px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .grid.slide-next, .grid.slide-prev { animation: none; } }
+  .desc { margin: 0 0 12px; font-size: 14px; line-height: 22px; color: #3b4250; }
+  .pc-body { padding-bottom: 18px; }
   .specs { list-style: none; margin: 0 0 10px; padding: 0; display: grid; grid-template-columns: repeat(3, auto); gap: 8px; justify-content: space-between; }
   .specs li { display: flex; align-items: center; gap: 8px; }
   .specs :global(svg) { color: #0f2a4d; flex: none; }
@@ -119,7 +144,6 @@ const ctaBg = await bgUrl('Spacious-Industrial-Plant-with-Cooling-Machinery.webp
   .cta-btn { display: inline-flex; align-items: center; gap: 14px; min-height: 50px; padding: 0 28px; background: var(--red); color: #fff; font-size: 17px; font-weight: 600; flex: none; }
   .cta-btn:hover { background: #a51f21; }
 
-  @media (max-width: 1279px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   @media (max-width: 1023px) {
     .ph-in { grid-template-columns: 1fr; }
     .badges { justify-content: center; }
@@ -136,14 +160,50 @@ const ctaBg = await bgUrl('Spacious-Industrial-Plant-with-Cooling-Machinery.webp
 </style>
 
 <script>
-  const btns = [...document.querySelectorAll<HTMLButtonElement>('.fb')];
-  const cards = [...document.querySelectorAll<HTMLElement>('.pc')];
-  const status = document.getElementById('pf-status');
-  btns.forEach((b) => b.addEventListener('click', () => {
-    const f = b.dataset.filter!;
-    btns.forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
-    let n = 0;
-    cards.forEach((c) => { const show = f === '*' || c.dataset.cats!.split('|').includes(f); c.hidden = !show; if (show) n++; });
-    if (status) status.textContent = `${n} project${n === 1 ? '' : 's'} shown`;
-  }));
+  const PER = 6;
+  document.querySelectorAll<HTMLElement>('.pw').forEach((root) => {
+    const paged = root.dataset.paged === 'true';
+    const btns = [...root.querySelectorAll<HTMLButtonElement>('.fb')];
+    const cards = [...root.querySelectorAll<HTMLElement>('.pc')];
+    const grid = root.querySelector<HTMLElement>('.grid')!;
+    const status = root.querySelector<HTMLElement>('#pf-status');
+    const pager = root.querySelector<HTMLElement>('.pager');
+    const empty = root.querySelector<HTMLElement>('.empty');
+    const prev = root.querySelector<HTMLButtonElement>('.pg-prev');
+    const next = root.querySelector<HTMLButtonElement>('.pg-next');
+    const dots = root.querySelector<HTMLElement>('.pg-dots');
+    let filter = '*';
+    let page = 0;
+
+    const render = (dir?: 'next' | 'prev') => {
+      const match = cards.filter((c) => filter === '*' || c.dataset.cats!.split('|').includes(filter));
+      const pages = paged ? Math.max(1, Math.ceil(match.length / PER)) : 1;
+      page = Math.min(page, pages - 1);
+      const visible = paged ? match.slice(page * PER, page * PER + PER) : match;
+      cards.forEach((c) => { c.hidden = !visible.includes(c); });
+      if (empty) empty.hidden = match.length > 0;
+      if (status) status.textContent = match.length + ' project' + (match.length === 1 ? '' : 's') + ' shown' + (pages > 1 ? ', page ' + (page + 1) + ' of ' + pages : '');
+      if (pager) {
+        pager.hidden = pages < 2;
+        if (prev) prev.disabled = page === 0;
+        if (next) next.disabled = page === pages - 1;
+        if (dots) dots.innerHTML = Array.from({ length: pages }, (_, i) => '<span class="pg-dot' + (i === page ? ' on' : '') + '"></span>').join('');
+      }
+      if (dir) {
+        grid.classList.remove('slide-next', 'slide-prev');
+        void grid.offsetWidth;
+        grid.classList.add('slide-' + dir);
+      }
+    };
+
+    btns.forEach((b) => b.addEventListener('click', () => {
+      filter = b.dataset.filter!;
+      page = 0;
+      btns.forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+      render();
+    }));
+    prev?.addEventListener('click', () => { page -= 1; render('prev'); });
+    next?.addEventListener('click', () => { page += 1; render('next'); });
+    render();
+  });
 </script>
