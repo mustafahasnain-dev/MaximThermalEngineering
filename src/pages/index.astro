@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Blocks from '../components/wp/Blocks.astro';
+import ServiceStack from '../components/ServiceStack.astro';
 import { page, decode } from '../lib/pages';
 
 const home = page('home');
@@ -10,6 +11,12 @@ const tag = (items: any[]): void => items.forEach((b) => {
   else if (b.t === 'h' && /Radiator Solutions/i.test(b.html)) b.id = 'services';
 });
 tag(home.rows);
+// Service rows (badge heading plus image) render as stacking panels.
+const isService = (r: any) => r.t === 'row' && r.cols[0]?.items.some((b: any) => b.t === 'h' && b.wrap?.bg) && r.cols[0]?.items.some((b: any) => b.t === 'img');
+const first = home.rows.findIndex(isService);
+const services = home.rows.filter(isService);
+const before = home.rows.slice(0, first);
+const after = home.rows.slice(first).filter((r) => !isService(r));
 ---
 <Layout title={decode(home.title)} description={home.description} ogImage="/video/hero-poster.jpg">
   <section class="hero" aria-label="Powering Performance Through Efficient Cooling">
@@ -23,7 +30,9 @@ tag(home.rows);
       <a class="btn btn-outline-light hero-btn" href="#services">Our services <svg class="chev" viewBox="0 0 7 11" aria-hidden="true"><path d="M1 1l4.5 4.5L1 10" fill="none" stroke="currentColor" stroke-width="1.6" /></svg></a>
     </div>
   </section>
-  <Blocks items={home.rows} />
+  <Blocks items={before} />
+  <ServiceStack rows={services} />
+  <Blocks items={after} />
 </Layout>
 
 <style>

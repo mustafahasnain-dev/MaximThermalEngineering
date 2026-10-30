@@ -1,0 +1,94 @@
+---
+// Homepage services as stacking panels: each pins while the next slides over it, shrinking and fading.
+import { Image } from 'astro:assets';
+import { upload } from '../lib/img';
+import type { Block } from '../lib/blocks';
+
+interface Props { rows: Block[] }
+const items = Astro.props.rows.map((r) => {
+  const all: Block[] = r.cols[0].items;
+  const find = (t: string) => all.find((b) => b.t === t);
+  return {
+    title: find('h')?.html as string,
+    img: find('img'),
+    text: String(find('text')?.html ?? '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+    list: (find('icons')?.items ?? []).map((i: any) => i.title as string),
+    href: String(find('btn')?.href ?? '').replace(/^https?:\/\/(www\.)?maximthermalengg\.com/, ''),
+  };
+});
+---
+<section class="ss">
+  <div class="container">
+    {items.map((s, i) => {
+      const m = upload(s.img?.src);
+      return (
+        <article class="panel" style={`--i:${i}`}>
+          <div class="panel-t">
+            <span class="bar" aria-hidden="true"></span>
+            <h3 set:html={s.title} />
+            <p set:html={s.text} />
+            <p class="apps" set:html={s.list.join(' · ')} />
+            <a class="more" href={s.href || '/inquiry/'}>{s.href ? 'Learn more' : 'Get a Quote'} <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="panel-m">
+            {m && <Image src={m} alt={s.img?.alt || 'Maxim Thermal Engineering'} widths={[480, 800]} sizes="(max-width: 899px) 100vw, 580px" loading="lazy" />}
+          </div>
+        </article>
+      );
+    })}
+  </div>
+</section>
+
+<style>
+  .ss { padding: 0 0 64px; }
+  .panel { position: sticky; top: calc(var(--header-h) + 8px + var(--i) * 16px); display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); min-height: 440px; margin-bottom: 28px; background: #fff; border: 2px solid var(--ink); transform-origin: 50% 0; }
+  .panel-t { display: flex; flex-direction: column; gap: 16px; padding: 40px; }
+  .bar { width: 80px; height: 8px; background: var(--red); }
+  h3 { font-size: 34px; line-height: 40px; font-weight: 800; text-transform: uppercase; margin: 0; }
+  p { margin: 0; }
+  .apps { font-size: 14px; line-height: 24px; }
+  .more { margin-top: auto; align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--red); }
+  .more:hover { text-decoration: underline; }
+  .panel-m { display: flex; align-items: center; justify-content: center; padding: 28px; overflow: hidden; border-left: 2px solid var(--ink); background-color: #f5f5f5; background-image: linear-gradient(#e6e6e6 1px, transparent 1px), linear-gradient(90deg, #e6e6e6 1px, transparent 1px); background-size: 24px 24px; }
+  .panel-m :global(img) { width: 100%; max-height: 400px; object-fit: contain; mix-blend-mode: multiply; }
+  /* The image wipes in once, like the drawing in the reference. */
+  :global(.js-ss) .panel-m :global(img) { clip-path: inset(0 100% 0 0); transition: clip-path 1.4s cubic-bezier(.2,.7,.2,1); }
+  :global(.js-ss) .panel.in .panel-m :global(img) { clip-path: inset(0); }
+  @media (max-width: 899px) {
+    .panel { position: relative; top: auto; grid-template-columns: minmax(0, 1fr); }
+    .panel-m { border-left: 0; border-top: 2px solid var(--ink); }
+    .panel-t { padding: 24px; }
+    h3 { font-size: 26px; line-height: 32px; }
+    .panel-t > p:not(.apps) , .apps { font-size: 18px; line-height: 28px; }
+  }
+</style>
+
+<script>
+  const panels = [...document.querySelectorAll<HTMLElement>('.panel')];
+  if (panels.length && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.documentElement.classList.add('js-ss');
+    const io = new IntersectionObserver((es) => es.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    }), { rootMargin: '0px 0px -25% 0px' });
+    panels.forEach((p) => io.observe(p));
+
+    // While the next panel travels from 88% to 20% of the screen, this one scales to .94 and fades to .55.
+    const wide = matchMedia('(min-width: 900px)');
+    let queued = false;
+    const update = () => {
+      queued = false;
+      const vh = innerHeight;
+      panels.forEach((p, i) => {
+        const next = panels[i + 1];
+        if (!next || !wide.matches) { p.style.transform = ''; p.style.opacity = ''; return; }
+        const t = Math.min(1, Math.max(0, (vh * 0.88 - next.getBoundingClientRect().top) / (vh * 0.68)));
+        p.style.transform = `scale(${1 - t * 0.06})`;
+        p.style.opacity = String(1 - t * 0.45);
+      });
+    };
+    const on = () => { if (!queued) { queued = true; requestAnimationFrame(update); } };
+    addEventListener('scroll', on, { passive: true });
+    addEventListener('resize', on);
+    update();
+  }
+</script>
